@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  workspace-api:
+    build: .
+    container_name: investigative_workspace
+    ports:
+      - "8000:8000"
+    environment:
+      - LLM_API_BASE=http://inference-engine:8080/v1
+    depends_on:
+      - inference-engine
+    networks:
+      - isolated-pod
+
+  inference-engine:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: local_llm_engine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/models
+    command: -m /models/local-model.gguf --port 8080 --host 0.0.0.0 -c 4096
+    networks:
+      - isolated-pod
+
+networks:
+  isolated-pod:
+    driver: bridge
